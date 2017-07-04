@@ -4,6 +4,37 @@
 #include <math.h>
 #include <iostream>
 
+
+gint handle_draw(
+                               GtkWidget *widget,
+                               GdkEvent *gev,
+                               gpointer context)
+{
+  std::cerr << "XXX: draw called\n";
+  // vgui_gtk2_adaptor* adaptor = (vgui_gtk2_adaptor*) context;
+  // adaptor->draw();
+  return TRUE;
+}
+
+gint handle_configure(
+                               GtkWidget *widget,
+                               GdkEvent *gev,
+                               gpointer context)
+{
+  // XXX vgui_gtk2_adaptor* adaptor = (vgui_gtk2_adaptor*) context;
+
+  // The following 5 lines are required to make GL context available
+  // so that some GL functions (such as glGenLists()) can succeed.
+  GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
+  GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (widget);
+  if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
+    return FALSE;
+  gdk_gl_drawable_gl_end (gldrawable);
+
+  // XXX adaptor->reshape();
+  return TRUE;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -19,24 +50,109 @@ main (int argc, char **argv)
   // 
   // --------- vgui_gtk2_window::vgui_gtk2_window()
   //
-  // use_menubar(false)
-  // use_statusbar(true)
+  bool use_menubar(false), 
+       use_statusbar(true);
+
+
   // adaptor(new vgui_gtk2_adaptor(this))
+
+  // Try double-buffered visual
+  GdkGLConfig* glconfig = gdk_gl_config_new_by_mode (GdkGLConfigMode(GDK_GL_MODE_RGB |
+                                                                     GDK_GL_MODE_DEPTH |
+                                                                     GDK_GL_MODE_DOUBLE));
+  if (glconfig == 0)
+  {
+    g_print ("*** Cannot find the double-buffered visual.\n");
+    g_print ("*** Trying single-buffered visual.\n");
+
+    // Try single-buffered visual
+    glconfig = gdk_gl_config_new_by_mode(GdkGLConfigMode(GDK_GL_MODE_RGB |
+                                                         GDK_GL_MODE_DEPTH));
+    if (glconfig == 0)
+    {
+      g_print ("*** No appropriate OpenGL-capable visual found.\n");
+      std::abort();
+    }
+  }
+
+  GtkWidget *widget = gtk_drawing_area_new ();
+  //gtk_widget_set_size_request (drawing_area, 300, 300);
+
+  if (!widget)
+  {
+    std::cerr << __FILE__ << " : Could not get a GL widget!\n";
+    std::abort();
+  }
+
+  // Set OpenGL-capability to the widget.
+  if ( !gtk_widget_set_gl_capability(widget,
+                                     glconfig,
+                                     0 /*NULL*/,
+                                     TRUE,
+                                     GDK_GL_RGBA_TYPE) )
+  {
+    std::cerr << __FILE__ << " : Could not set GL capability!\n";
+    std::abort();
+  }
+  std::cerr << "XXX: capabily ok\n";
+
+
+  // Since we need to access the widget from time to time (e.g. to
+  // make this OpenGL context the current context), we need to keep a
+  // reference to the widget.
+  gtk_object_ref( GTK_OBJECT(widget) );
+
+  gtk_widget_set_events(widget,
+                        GDK_EXPOSURE_MASK);
+//    |
+//                        GDK_POINTER_MOTION_MASK |
+//                        GDK_POINTER_MOTION_HINT_MASK |
+//                        GDK_BUTTON_PRESS_MASK |
+//                        GDK_BUTTON_RELEASE_MASK |
+//                        GDK_KEY_PRESS_MASK |
+//                        GDK_KEY_RELEASE_MASK |
+//                        GDK_ENTER_NOTIFY_MASK |
+//                        GDK_LEAVE_NOTIFY_MASK);
+
+  gtk_signal_connect(GTK_OBJECT(widget), "configure-event", GTK_SIGNAL_FUNC(handle_configure), NULL);
+  gtk_signal_connect(GTK_OBJECT(widget), "expose_event", GTK_SIGNAL_FUNC(handle_draw), NULL);
+//  gtk_signal_connect(GTK_OBJECT(widget), "map_event", GTK_SIGNAL_FUNC(handle_draw), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "motion_notify_event", GTK_SIGNAL_FUNC(handle_motion_notify), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "button_press_event", GTK_SIGNAL_FUNC(handle_button), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "button_release_event", GTK_SIGNAL_FUNC(handle_button), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "key_press_event", GTK_SIGNAL_FUNC(handle_key), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "key_release_event", GTK_SIGNAL_FUNC(handle_key), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "enter_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "leave_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
+  GTK_WIDGET_SET_FLAGS(widget, GTK_CAN_FOCUS);
+
+  bool redraw_requested = false;
+  bool destroy_requested = false;
+  
+
+
   // statusbar(new vgui_gtk2_statusbar)
   // last_menubar(new vgui_menu)
   // 
-  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(window), title);
-  gtk_window_set_default_size(GTK_WINDOW(window),w,h);
+
+
+
+  //
+  GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  // gtk_window_set_title(GTK_WINDOW(window), title);
+  // gtk_window_set_default_size(GTK_WINDOW(window),w,h);
 
   // vgui::out.rdbuf(static_cast<vgui_gtk2_statusbar*>(statusbar)->statusbuf);
 
+  /*
   gtk_signal_connect(GTK_OBJECT(window), "delete_event",
                      GTK_SIGNAL_FUNC(delete_event_callback),
                      static_cast<vgui_gtk2_adaptor*>(adaptor));
+                     */
   //!---------
   // --- vgui_gtk2_window::init()  TODO: is this being called too early?
 
+#if 0
   box = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER (window), box);
 
@@ -81,6 +197,7 @@ main (int argc, char **argv)
 
   // win->show() in basic app
   gtk_widget_show(window);
+#endif
 
   //!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 

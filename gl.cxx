@@ -190,7 +190,7 @@ rotate (gpointer user_data)
 }
 
 int
-main (int argc, char **argv)
+main(int argc, char **argv)
 {
 	GtkWidget *window;
 	GtkWidget *da;
