@@ -211,10 +211,10 @@ main (int argc, char **argv)
 	gtk_widget_show (window);
 
 	/* prepare GL */
-	glconfig = gdk_gl_config_new_by_mode (
+	glconfig = gdk_gl_config_new_by_mode (GdkGLConfigMode(
 			GDK_GL_MODE_RGB |
 			GDK_GL_MODE_DEPTH |
-			GDK_GL_MODE_DOUBLE);
+			GDK_GL_MODE_DOUBLE));
 
 	if (!glconfig)
 	{

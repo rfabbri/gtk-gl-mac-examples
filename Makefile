@@ -1,4 +1,4 @@
-all: version simple gl gl-apple gt gl-apple-cxx
+all: version simple gl gl-cxx#  gl-apple gt gl-apple-cxx
 
 
 # GCC Toolchain - works out of the box -----------------------------
@@ -11,6 +11,10 @@ simple:simple.c
 
 gl:gl.c
 	 gcc -o gl gl.c `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0`
+
+# G++ requires tweaks
+gl-cxx:gl.cxx
+	 gcc -o gl-cxx gl.cxx `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0`
 
 # Apple toolchain -------------------------------------------------
 
