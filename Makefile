@@ -1,4 +1,4 @@
-all: version simple gl gl-cxx gl-apple gt gl-apple-cxx
+all: version simple gl gl-cxx gl-apple tt gl-apple-cxx
 
 
 # GCC Toolchain - works out of the box -----------------------------
@@ -22,7 +22,7 @@ gl-cxx:gl.cxx
 gl-apple:gl-apple.c
 	 cc -o gl-apple gl-apple.c `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0` -I /System/Library/Frameworks/OpenGL.framework/Headers
 
-# Spews error
+# Also small tweaks for C++ (run a diff aganst gl.c to see them)
 gl-apple-cxx:gl-apple.cxx
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -o gl-apple-cxx gl-apple.cxx `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0` -I /System/Library/Frameworks/OpenGL.framework/Headers
 
