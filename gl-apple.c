@@ -1,36 +1,6 @@
-/*
- * =====================================================================================
- * 
- *        Filename:  gl.c
- * 
- *     Description:  
- * 
- *         Version:  1.0
- *         Created:  07/03/2017 20:32:16 BRT
- *        Revision:  none
- *        Compiler:  gcc
- * 
- *          Author:  Ricardo Fabbri (rfabbri), rfabbri.github.io
- *         Company:  Brown University
- * 
- * =====================================================================================
- */
-
-/*
- * An example of using GtkGLExt in C
- *
- * Written by Davyd Madeley <davyd@madeley.id.au> and made available under a
- * BSD license.
- *
- * This is purely an example, it may eat your cat and you can keep both pieces.
- *
- * Compile with:
- *    gcc -o gtkglext-example `pkg-config --cflags --libs gtk+-2.0 gtkglext-1.0 gtkglext-x11-1.0` gtkglext-example.c
- */
-
 #include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
-#include <GL/gl.h>
+#include <gl.h>
 
 #include <math.h>
 
