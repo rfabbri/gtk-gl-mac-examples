@@ -24,7 +24,7 @@ gl-apple:gl-apple.c
 
 # Also small tweaks for C++ (run a diff aganst gl.c to see them)
 gl-apple-cxx:gl-apple.cxx
-	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -o gl-apple-cxx gl-apple.cxx `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0` -I /System/Library/Frameworks/OpenGL.framework/Headers
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ -o gl-apple-cxx gl-apple.cxx `pkg-config --libs --cflags gtk+-2.0 gtkglext-1.0` -I /System/Library/Frameworks/OpenGL.framework/Headers -g
 
 # Test - this may not compile.
 tt:tt.cxx

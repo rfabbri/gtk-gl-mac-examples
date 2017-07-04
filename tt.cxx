@@ -3,6 +3,18 @@
 #include <gl.h>
 #include <math.h>
 #include <iostream>
+#include <assert.h>
+
+
+void make_current(GtkWidget *widget)
+{
+  GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
+  GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (widget);
+  if (!gldrawable || !glcontext)
+    std::cerr << "NULL GLDRAWABLE\n";
+  assert( gldrawable );
+  gdk_gl_drawable_make_current(gldrawable, glcontext);
+}
 
 
 gint handle_draw(
@@ -13,6 +25,11 @@ gint handle_draw(
   std::cerr << "XXX: draw called\n";
   // vgui_gtk2_adaptor* adaptor = (vgui_gtk2_adaptor*) context;
   // adaptor->draw();
+  //
+  //    Leaving out ovl stuff (see original file)
+  //
+  std::cout << "handle_draw) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
+  make_current(widget);
   return TRUE;
 }
 
@@ -21,17 +38,25 @@ gint handle_configure(
                                GdkEvent *gev,
                                gpointer context)
 {
+  std::cerr << "XXX:Configure called\n";
+  std::cout << "handle_configure) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
   // XXX vgui_gtk2_adaptor* adaptor = (vgui_gtk2_adaptor*) context;
 
+  if (!GTK_WIDGET_MAPPED(widget))
+      return FALSE;
   // The following 5 lines are required to make GL context available
   // so that some GL functions (such as glGenLists()) can succeed.
   GdkGLContext *glcontext = gtk_widget_get_gl_context (widget);
   GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (widget);
-  if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
+  if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext)) {
+    std::cerr << "XXX: FALSE\n";
     return FALSE;
+  }
   gdk_gl_drawable_gl_end (gldrawable);
 
   // XXX adaptor->reshape();
+  make_current(widget);
+  // stuff related to ovl_helper
   return TRUE;
 }
 
@@ -96,25 +121,36 @@ main (int argc, char **argv)
   }
   std::cerr << "XXX: capabily ok\n";
 
+  gtk_widget_set_events(widget,
+                        GDK_EXPOSURE_MASK
+    |
+                        GDK_POINTER_MOTION_MASK |
+                        GDK_POINTER_MOTION_HINT_MASK |
+                        GDK_BUTTON_PRESS_MASK |
+                        GDK_BUTTON_RELEASE_MASK |
+                        GDK_KEY_PRESS_MASK |
+                        GDK_KEY_RELEASE_MASK |
+                        GDK_ENTER_NOTIFY_MASK |
+                        GDK_LEAVE_NOTIFY_MASK);
 
   // Since we need to access the widget from time to time (e.g. to
   // make this OpenGL context the current context), we need to keep a
   // reference to the widget.
   gtk_object_ref( GTK_OBJECT(widget) );
+#if 0
 
   gtk_widget_set_events(widget,
-                        GDK_EXPOSURE_MASK);
-//    |
-//                        GDK_POINTER_MOTION_MASK |
-//                        GDK_POINTER_MOTION_HINT_MASK |
-//                        GDK_BUTTON_PRESS_MASK |
-//                        GDK_BUTTON_RELEASE_MASK |
-//                        GDK_KEY_PRESS_MASK |
-//                        GDK_KEY_RELEASE_MASK |
-//                        GDK_ENTER_NOTIFY_MASK |
-//                        GDK_LEAVE_NOTIFY_MASK);
-
-  gtk_signal_connect(GTK_OBJECT(widget), "configure-event", GTK_SIGNAL_FUNC(handle_configure), NULL);
+                        GDK_EXPOSURE_MASK
+    |
+                        GDK_POINTER_MOTION_MASK |
+                        GDK_POINTER_MOTION_HINT_MASK |
+                        GDK_BUTTON_PRESS_MASK |
+                        GDK_BUTTON_RELEASE_MASK |
+                        GDK_KEY_PRESS_MASK |
+                        GDK_KEY_RELEASE_MASK |
+                        GDK_ENTER_NOTIFY_MASK |
+                        GDK_LEAVE_NOTIFY_MASK);
+  gtk_signal_connect(GTK_OBJECT(widget), "configure_event", GTK_SIGNAL_FUNC(handle_configure), NULL);
   gtk_signal_connect(GTK_OBJECT(widget), "expose_event", GTK_SIGNAL_FUNC(handle_draw), NULL);
 //  gtk_signal_connect(GTK_OBJECT(widget), "map_event", GTK_SIGNAL_FUNC(handle_draw), this);
 //  gtk_signal_connect(GTK_OBJECT(widget), "motion_notify_event", GTK_SIGNAL_FUNC(handle_motion_notify), this);
@@ -125,6 +161,7 @@ main (int argc, char **argv)
 //  gtk_signal_connect(GTK_OBJECT(widget), "enter_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
 //  gtk_signal_connect(GTK_OBJECT(widget), "leave_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
   GTK_WIDGET_SET_FLAGS(widget, GTK_CAN_FOCUS);
+#endif
 
   bool redraw_requested = false;
   bool destroy_requested = false;
@@ -168,7 +205,6 @@ main (int argc, char **argv)
   gtk_container_set_border_width(GTK_CONTAINER(frame), 2);
 
   gtk_box_pack_start(GTK_BOX(box), frame, TRUE, TRUE, 0);
-  gtk_widget_show(frame);
 
   std::cout << "XXX: after place glarea\n";
 
@@ -177,9 +213,19 @@ main (int argc, char **argv)
   // ownership.
   GtkWidget *glarea = static_cast<vgui_gtk2_adaptor*>(adaptor)->get_glarea_widget();
 #endif
+
+
+
+  std::cout << "1) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
+  
+
   GtkWidget *glarea = widget;
   gtk_container_add(GTK_CONTAINER(frame), glarea);
+  gtk_widget_show(frame);
   gtk_widget_show(glarea);
+  gtk_widget_show(window);
+
+  std::cout << "2) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
 
 #if 0
   if (use_statusbar) {
@@ -193,6 +239,7 @@ main (int argc, char **argv)
   std::cout << "XXX: end of window init\n";
 
   gtk_widget_show(box);
+  std::cout << "3) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
   
   //!---
   //!-------------------------------------------------------
@@ -201,8 +248,22 @@ main (int argc, char **argv)
 
   // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
+  gtk_signal_connect(GTK_OBJECT(widget), "configure_event", GTK_SIGNAL_FUNC(handle_configure), NULL);
+  gtk_signal_connect(GTK_OBJECT(widget), "expose_event", GTK_SIGNAL_FUNC(handle_draw), NULL);
+//  gtk_signal_connect(GTK_OBJECT(widget), "map_event", GTK_SIGNAL_FUNC(handle_draw), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "motion_notify_event", GTK_SIGNAL_FUNC(handle_motion_notify), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "button_press_event", GTK_SIGNAL_FUNC(handle_button), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "button_release_event", GTK_SIGNAL_FUNC(handle_button), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "key_press_event", GTK_SIGNAL_FUNC(handle_key), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "key_release_event", GTK_SIGNAL_FUNC(handle_key), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "enter_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
+//  gtk_signal_connect(GTK_OBJECT(widget), "leave_notify_event", GTK_SIGNAL_FUNC(handle_enter_leave), this);
+  GTK_WIDGET_SET_FLAGS(widget, GTK_CAN_FOCUS);
+
   // win->show() in basic app
   gtk_widget_show(window);
+  gtk_widget_show_all(window);
+  std::cout << "4) glarea widget mapped: " << GTK_WIDGET_MAPPED(widget) << std::endl;
 
   //!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 

@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
 #include <gl.h>
+#include <iostream>
 
 #include <math.h>
 
@@ -21,8 +22,10 @@ static float ang = 30.;
 static gboolean
 expose (GtkWidget *da, GdkEventExpose *event, gpointer user_data)
 {
+  std::cerr << "XXX: draw called\n";
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (da);
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (da);
+  std::cout << "handle_draw) glarea widget mapped: " << GTK_WIDGET_MAPPED(da) << std::endl;
 
 	// g_print (" :: expose\n");
 
@@ -155,13 +158,18 @@ expose (GtkWidget *da, GdkEventExpose *event, gpointer user_data)
 static gboolean
 configure (GtkWidget *da, GdkEventConfigure *event, gpointer user_data)
 {
+  std::cerr << "XXX:Configure called\n";
+  std::cout << "handle_configure) glarea widget mapped: " << GTK_WIDGET_MAPPED(da) << std::endl;
 	GdkGLContext *glcontext = gtk_widget_get_gl_context (da);
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable (da);
+  
 
 	if (!gdk_gl_drawable_gl_begin (gldrawable, glcontext))
 	{
 		g_assert_not_reached ();
 	}
+
+  std::cout << "FINAL) glarea widget mapped: " << GTK_WIDGET_MAPPED(da) << std::endl;
 
 	glLoadIdentity();
 	glViewport (0, 0, da->allocation.width, da->allocation.height);
@@ -234,7 +242,7 @@ main (int argc, char **argv)
 
 	gtk_widget_show_all (window);
 
-	g_timeout_add (1000 / 60, rotate, da);
+	// g_timeout_add (1000 / 60, rotate, da);
 
 	gtk_main ();
 }
