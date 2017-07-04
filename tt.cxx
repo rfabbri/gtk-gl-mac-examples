@@ -139,8 +139,8 @@ main (int argc, char **argv)
 
   //
   GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  // gtk_window_set_title(GTK_WINDOW(window), title);
-  // gtk_window_set_default_size(GTK_WINDOW(window),w,h);
+  gtk_window_set_title(GTK_WINDOW(window), "test win");
+  gtk_window_set_default_size(GTK_WINDOW(window),800,600);
 
   // vgui::out.rdbuf(static_cast<vgui_gtk2_statusbar*>(statusbar)->statusbuf);
 
@@ -152,14 +152,15 @@ main (int argc, char **argv)
   //!---------
   // --- vgui_gtk2_window::init()  TODO: is this being called too early?
 
-#if 0
-  box = gtk_vbox_new(FALSE, 0);
+  GtkWidget *box = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER (window), box);
+#if 0
 
   if (use_menubar) {
     gtk_box_pack_start(GTK_BOX(box), menubar, FALSE, TRUE, 0);
     gtk_widget_show(menubar);
   }
+#endif
 
   // place glarea inside a frame
   GtkWidget *frame = gtk_frame_new(0);
@@ -171,18 +172,23 @@ main (int argc, char **argv)
 
   std::cout << "XXX: after place glarea\n";
 
+#if 0
   // This re-parents the glarea widget, so the adaptor should yield
   // ownership.
   GtkWidget *glarea = static_cast<vgui_gtk2_adaptor*>(adaptor)->get_glarea_widget();
+#endif
+  GtkWidget *glarea = widget;
   gtk_container_add(GTK_CONTAINER(frame), glarea);
   gtk_widget_show(glarea);
 
+#if 0
   if (use_statusbar) {
     vgui_gtk2_statusbar* s = static_cast<vgui_gtk2_statusbar*>(statusbar);
     s->widget = gtk_statusbar_new();
     gtk_box_pack_start(GTK_BOX(box), s->widget, FALSE, TRUE, 0);
     gtk_widget_show(s->widget);
   }
+#endif
 
   std::cout << "XXX: end of window init\n";
 
@@ -197,7 +203,6 @@ main (int argc, char **argv)
 
   // win->show() in basic app
   gtk_widget_show(window);
-#endif
 
   //!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
